@@ -1,0 +1,51 @@
+---
+title: "Mapeo de datos de suelos (O2P) a estándar DwC"
+output: html_document
+date: "2023-01-31"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introducción
+
+
+# Esquema de muestreo 
+
+- copiar del informe de suelo 
+
+# Origen de los datos originales
+
+- Los datos de suelo vienen de la mdb ... versión xxx. 
+
+Hemos ejecutado la siguiente consulta: 
+
+```sql
+SELECT 
+  column1, column2 
+FROM table WHERE column1='value' 
+```
+
+El resultado lo hemos guardado en el archivo [`suelos_v2.xlsx`](data_raw/suelos_v2.xlsx) que está en la ruta `data_raw/suelos_v2.xlsx` 
+
+```{r pkgs}
+library(tidyverse)
+library(here)
+```
+
+```{r}
+raw <- readxl::read_excel(here::here("data_raw/suelos_v2.xlsx"))
+```
+
+Vamos a crear un diccionario de variables (`var_dic`) para generar el MeasurmentOrFact. Crearemos una tabla con  campos (algunos de ellos **requeridos**) para tener un diccionario de variables. Utilizaremos en la medida de lo posible una tipología de campos lo mas parecida a las descripciones existentes en las extensiones [*MeasurementOrFact* (MoF)](https://rs.gbif.org/extension/dwc/measurements_or_facts_2022-02-02.xml) o [*ExtendedMeasurementOrFact* (eMoF)](https://rs.gbif.org/extension/obis/extended_measurement_or_fact.xml) de GBIF
+
+- **`id_var`**: numérico (required)
+- **`name`**: nombre de la variable (req.). 
+- `code`: código de la variable
+- `units`: unidades de la variable 
+- `methods`: campo para indicar una descripción de los métodos
+
+
