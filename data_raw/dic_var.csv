@@ -1,0 +1,19 @@
+id,name,code,units,methods,raw_key,url_controlled
+S01,total phosphorus,Ktot,percentage,,ptotal_percent,
+S02,calcium,Ca,percentage,,ca_percent,http://vocabs.lter-europe.net/EnvThes/20804
+S03,soil moisture,Humedad,percentage,,humedad,
+S04,ammonium,N_NH4,percentage,,n_nh4,
+S05,nitrate,N_NO3,percentage,,n_no3,
+S06,iron,Fe,percentage,,fe_percent,http://vocabs.lter-europe.net/EnvThes/20827
+S07,potassium,K,percentage,,k_percent,http://vocabs.lter-europe.net/EnvThes/20864
+S08,magnesium,Mg,percentage,,mg_percent,
+S09,sodium,Na,percentage,,na_percent,
+S10,nitrogen,N,percentage,,n_percent,
+S11,carbon,C,percentage,,c_percent,
+S12,carbon to nitrogen ratio,C/N,,,c_n,
+S13,cation exchange capacity,CEC,,,cic,
+S14,phosphorous,P,,,p,
+S15,organic matter,OM,,,mo,
+S16,water pH,pH_agua,,,p_h_agua,
+S17,pH,pH_KCl,,,p_h_k_cl,
+S18,water pH EEZ,pH_agua_EEZ,,,p_h_agua_eez,

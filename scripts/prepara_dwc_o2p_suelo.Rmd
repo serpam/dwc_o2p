@@ -12,7 +12,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introducción
 
-
 # Esquema de muestreo 
 
 - copiar del informe de suelo 
@@ -34,18 +33,133 @@ El resultado lo hemos guardado en el archivo [`suelos_v2.xlsx`](data_raw/suelos_
 ```{r pkgs}
 library(tidyverse)
 library(here)
+library(janitor)
 ```
 
 ```{r}
-raw <- readxl::read_excel(here::here("data_raw/suelos_v2.xlsx"))
+raw <- readxl::read_excel(here::here("data_raw/suelos_v2.xlsx")) |> 
+  clean_names()
 ```
 
-Vamos a crear un diccionario de variables (`var_dic`) para generar el MeasurmentOrFact. Crearemos una tabla con  campos (algunos de ellos **requeridos**) para tener un diccionario de variables. Utilizaremos en la medida de lo posible una tipología de campos lo mas parecida a las descripciones existentes en las extensiones [*MeasurementOrFact* (MoF)](https://rs.gbif.org/extension/dwc/measurements_or_facts_2022-02-02.xml) o [*ExtendedMeasurementOrFact* (eMoF)](https://rs.gbif.org/extension/obis/extended_measurement_or_fact.xml) de GBIF
+- Al importar los datos aplicamos una "limpieza de los nombres de las variables" para que sean mas manejables de forma programática. Usamos para ello la función `janitor::clean_names` (eg. "K %" se convierte en k_percent)
 
-- **`id_var`**: numérico (required)
-- **`name`**: nombre de la variable (req.). 
-- `code`: código de la variable
-- `units`: unidades de la variable 
-- `methods`: campo para indicar una descripción de los métodos
+## Diccionario de variables 
+
+Vamos a crear un diccionario de variables (`var_dic`) para generar el MeasurmentOrFact. Crearemos una tabla con  campos para tener un diccionario de variables. Utilizaremos en la medida de lo posible una tipología de campos lo más parecida a las descripciones existentes en las extensiones [*MeasurementOrFact* (MoF)](https://rs.gbif.org/extension/dwc/measurements_or_facts_2022-02-02.xml) o [*ExtendedMeasurementOrFact* (eMoF)](https://rs.gbif.org/extension/obis/extended_measurement_or_fact.xml) de GBIF. La estructura de la tabla es:
+
+- **`id_var`**: identificador. Requerido. Acordamos que los parámetros relacionados con suelo llevarán delante la letra S, mientras que los de vegetación la palabra V. La estructura será `X00` siendo `X`: S (Soil) o V (Vegetation), y `00` hace referencia un número del 0 al 99. 
+- **`name`**: nombre de la variable (req.). GBIF recomienda usar un vocabulario controlado. Corresponde con `measurementType`
+- `code`: código de la variable. 
+- **`units`**: unidades de la variable. Correspondencia con `measurementUnit`
+- `methods`: campo para indicar una descripción de los métodos. Correspondencia con `measurementMethod`
+- **`raw_key`**: la clave (código de los nombres de las variables en el conjunto de datos original, para poder hacer la transformación). 
+- `url_controlled`: url del identificador del término en un vocabulario controlado. Sugiero utilizar este: https://vocabs.lter-europe.net/envthes/en/.  
+
+```{r}
+dic_var <- read_csv(here::here("data_raw/dic_var.csv"))
+```
+
+
+## Generación del identificador del evento para las muestras de suelo. 
+
+### Estandarización de campos
+
+- nombre_zona: renombramos la variable a `treatment_name`, y los niveles del factor los renombramos 
+  - "Quemado con pastoreo": QOP
+  - "Quemado sin pastoreo": QONP
+  - "Quemado primavera": QPP
+  
+```{r}
+raw <- raw |> 
+  mutate(
+    treatment_name = case_when(
+      nombre_zona == "Quemado con pastoreo" ~ "QOP",
+      nombre_zona == "Quemado sin pastoreo" ~ "QONP",
+      nombre_zona == "Quemado primavera" ~ "QPP"))
+
+```
+
+- `geo_parcela_nombre` lo estandarizamos con la estructura `XX_00` siendo `XX`: `P` (Pastoreo), `NP` (No Pastoreo), `PR` (Primavera) y `00` correspoden a unos números. Ojo tenemos que añadir un 0 a algunos números
+
+```{r}
+raw <- raw |> 
+  separate(col = geo_parcela_nombre, 
+           into = c("gpname", "gpnumber"), remove = FALSE) |> 
+  mutate(gpnumber = sprintf("%02d",as.numeric(gpnumber))) |> 
+  unite(col = "geo_parcela_nombre0", gpname:gpnumber, sep = "")
+  
+```
+
+- `fecha` lo convierto a formato 'YYYYMMDD` 
+
+```{r}
+raw <- raw |> 
+  mutate(date = gsub("-","",fecha))
+```
+
+- `geo_suelos_nombre`. De esta columna nos interesa obtener la réplica, que nos informaría del rango de vegetación. O también podemos obviarlo en nombre del evento, y añadirlo como una variable. 
+
+```{r}
+raw <- raw |> 
+  mutate(replica = 
+           ifelse(rango != "Intermedia",
+                  paste0("R",rango), 
+                  str_extract(geo_suelos_nombre, 'E\\d+'))) 
+```
+
+### Generar evento
+
+```{r}
+raw <- raw |> 
+  unite("aux", c(geo_parcela_nombre0,replica), sep = "", remove = FALSE) |>
+  unite("eventID", c(aux, date), remove = FALSE)
+  
+```
+
+
+- Selecciono variables y transformo Long2wide
+
+```{r}
+raw_event <- raw |> 
+  dplyr::select(
+    eventID, 
+    treatment_name, 
+    measurementDeterminedDate = fecha, 
+    ptotal_percent:p_h_k_cl)
+```
+
+
+```{r}
+raw_event_long <- raw_event |> 
+  pivot_longer(cols = -c(eventID, treatment_name, measurementDeterminedDate), 
+               names_to = "raw_key", values_to = "measurementValue")
+```
+
+- Uno con los nombres de las variables
+
+```{r}
+raw_event_long <- raw_event_long |> 
+  inner_join(dic_var) 
+```
+
+- renombrar y añadir nombre de variable: 
+
+```{r}
+event_soils <- raw_event_long |> 
+  unite("measurementID", c(eventID, id), remove = FALSE) |> 
+  dplyr::select(measurementID, 
+                eventID, 
+                measurementType = name, 
+                measurementValue,
+                measurementUnit = units, 
+                measurementMethod = methods, 
+                measurementDeterminedDate,
+                measurementRemarks = url_controlled) |> 
+  filter(!is.na(measurementValue))
+
+```
+
+
+
 
 
