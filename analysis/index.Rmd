@@ -10,6 +10,11 @@ editor_options:
 
 Estandarización de datos de seguimiento delm proyecto O2P en Sierra de Filabres (Alcóntar, Almería, España) al estándar DarwinCore. 
 
+## Archivos auxiliares 
+- [Esquema de muestreo]() 
+- [Diccionario de variables](dicc_variables.html)
+
 ## Generación de ExtendedMeasurementOrFacts
 - [Datos de Quadrats](prepara_dwc_o2p_quadrats.html)
+- [Datos de Suelos](prepara_dwc_o2p_suelo.html)
 
