@@ -1,0 +1,40 @@
+---
+title: "Diccionario de Variables"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+## Diccionario de variables 
+Vamos a crear un diccionario de variables (`var_dic`) para generar el extendedMeasurmentOrFact. Utilizaremos en la medida de lo posible una tipología de campos lo más parecida a las descripciones existentes en las extensiones [*MeasurementOrFact* (MoF)](https://rs.gbif.org/extension/dwc/measurements_or_facts_2022-02-02.xml) o [*ExtendedMeasurementOrFact* (eMoF)](https://rs.gbif.org/extension/obis/extended_measurement_or_fact.xml) de GBIF. La estructura de la tabla es:
+
+- **`id_var`**: identificador. Requerido. Acordamos que los parámetros relacionados con suelo llevarán delante la letra S, mientras que los de vegetación la palabra V. La estructura será `X00` siendo `X`: S (Soil) o V (Vegetation), y `00` hace referencia un número del 0 al 99. 
+- **`name_var`**: nombre de la variable (req.). GBIF recomienda usar un vocabulario controlado. Corresponde con `measurementType`
+- `code`: código de la variable. 
+- **`units`**: unidades de la variable. Correspondencia con `measurementUnit`
+- `methods`: campo para indicar una descripción de los métodos. Correspondencia con `measurementMethod`
+- **`raw_key`**: la clave (código de los nombres de las variables en el conjunto de datos original, para poder hacer la transformación). 
+- `url_controlled`: url del identificador del término en un vocabulario controlado. Sugiero utilizar este: https://vocabs.lter-europe.net/envthes/en/.  
+
+
+```{r pkgs}
+library(tidyverse) # Easily Install and Load the 'Tidyverse'
+library(here) # A Simpler Way to Find Your Files
+library(data.table)
+```
+
+
+```{r}
+dic_var <- read.csv(here::here("data/raw/dic_var.csv"), sep = ";")
+```
+
+```{r, echo=FALSE}
+DT::datatable(dic_var,
+              rownames = FALSE,
+              filter = 'top',
+              options = list(
+                pageLength = 20, 
+                autoWidth = TRUE
+              ))
+```
+
