@@ -1,0 +1,33 @@
+id;name_var;code;units;methods;raw_key;url_controlled
+S01;total phosphorus;Ktot;percentage;ICP-optical;ptotal_percent;https://vocabs.lter-europe.net/envthes/en/page/20863
+S02;calcium;Ca;percentage;ICP-optical;ca_percent;http://vocabs.lter-europe.net/EnvThes/20804
+S03;soil moisture;Humedad;percentage;Gravimetry;humedad;https://vocabs.lter-europe.net/envthes/en/page/20745
+S04;ammonium;N_NH4;percentage;Analysis of 2M KCl extracts by Bruan-Luebbe AA3 continuous flow autoanalyzer;n_nh4;https://vocabs.lter-europe.net/envthes/en/page/20836
+S05;nitrate content;N_NO3;percentage;Analysis of 2M KCl extracts by Bruan-Luebbe AA3 continuous flow autoanalyzer;n_no3;https://vocabs.lter-europe.net/envthes/en/page/30146
+S06;iron;Fe;?;ICP-optical;fe_percent;https://vocabs.lter-europe.net/envthes/en/page/20827
+S07;potassium;K;percentage;ICP-optical;k_percent;https://vocabs.lter-europe.net/envthes/en/page/20864
+S08;magnesium;Mg;percentage;ICP-optical;mg_percent;https://vocabs.lter-europe.net/envthes/en/page/20829
+S09;sodium;Na;percentage;ICP-optical;na_percent;https://vocabs.lter-europe.net/envthes/en/page/20867
+S10;nitrogen;N;percentage;Dumas method;n_percent;https://vocabs.lter-europe.net/envthes/en/page/20832
+S11;carbon;C;percentage;Dumas method;c_percent;https://vocabs.lter-europe.net/envthes/en/page/20805
+S12;carbon to nitrogen ratio;C/N;ratio;Calculated from pre-found variables (C/N);c_n;https://vocabs.lter-europe.net/envthes/en/page/21933
+S13;cation exchange capacity;CEC;cmol(+)kg-1;Sodium acetate;cic;https://vocabs.lter-europe.net/envthes/en/page/22084
+S14;phosphorus available;P;(P2O5) mg kg -1;NaHCO3;ptotal_percent;https://vocabs.lter-europe.net/envthes/en/page/20854
+S15;oxidizable organic matter;OM;percentage;Redox titration (PNT-FQ-613);mo;https://vocabs.lter-europe.net/envthes/en/page/20887
+S16;soil pH value;pH_agua;pH units;Potentiometry;p_h_agua;https://vocabs.lter-europe.net/envthes/en/page/22264
+S17;pH value;pH_KCl;pH units;Potentiometry;p_h_k_cl;https://vocabs.lter-europe.net/envthes/en/page/21459
+S18;EEZ soil pH value;pH_agua_EEZ;pH units;Potentiometry;p_h_agua_eez;https://vocabs.lter-europe.net/envthes/en/page/22264
+V01;vegetation cover;coverage;percentage;Sumatory of the specific vegetation cover ;vcover_percent;https://vocabs.lter-europe.net/envthes/en/page/20537
+V02;total vegetation cover;total_coverage;percentage;"Plot: Étienne and Rigolot visual method; transect: Line-Intercept";tcover_percent;https://vocabs.lter-europe.net/envthes/en/page/20537
+V03;specific vegetation cover ;specific_coverage;percentage;Étienne and Rigolot visual method ;specific_cover_percent;https://vocabs.lter-europe.net/envthes/en/page/20537
+V04;maximum height;maximum_height;centimeters;"Plot: Field measurement of species height; Transect: Line-Intercept";maxheight;https://vocabs.lter-europe.net/envthes/en/page/21555
+V05;mode height;mode_height;centimeters;"Plot: Field measurement of species height; Transect: Line-Intercept";modeheight;https://vocabs.lter-europe.net/envthes/en/page/21555
+V06;phytovolume;Fitovolumen;m3ha-1;Calculated from pre-found variables (cover*mode height);fitovolumen;
+V07;diversity index;Diversidad;H';Point-Quadrat (Shannon Index);diversity;https://vocabs.lter-europe.net/envthes/en/page/21513
+V08;plant species richness;Riqueza;total number;Appeared species list;richness;https://vocabs.lter-europe.net/envthes/en/page/22196
+V09;consumption rate;tasa_consumo;range (0-5);Étienne and Rigolot visual method;tc;
+V10;bare soil cover;bare_soil_cover;percentage;"Plot: Étienne and Rigolot visual method; transect: Line-Intercept";bare_soil_percent;https://vocabs.lter-europe.net/envthes/en/page/22064
+V11;litter soil cover ;litter_soil_cover;percentage;"Plot: Étienne and Rigolot visual method; transect: Line-Intercept";litter_soil_percent;
+V12;burning severity;burning_severity;Infoca range ;Infoca field visual method;burning;
+V13;blowing level ;blowing_level;percentage;Field visual method;blowing_level_percent;
+V14;burning level;burning_level;percentage;Field visual method;burning_level_percent;
