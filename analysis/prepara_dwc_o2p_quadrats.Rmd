@@ -1,0 +1,487 @@
+---
+title: "Mapeo de datos de quadrats a estándar DwC"
+output: html_document
+date: "2023-01-31"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Consultas Base de Datos 
+
+Hemos ejecutado la siguientes consultas en la base de datos :
+
+- ***Altura máxima promedio Quadrat***: `CONSULTAS_ALTURA/ALTURA_MAX_PROMEDIO_QUADRAT`
+```sql
+SELECT ALT_MAX_PROMEDIO_INT.ZONA,
+       ALT_MAX_PROMEDIO_INT.PARCELA,
+       ALT_MAX_PROMEDIO_INT.QUADRAT,
+       ALT_MAX_PROMEDIO_INT.FECHA,
+       Sum(ALT_MAX_PROMEDIO_INT.ALT_REL) AS ALT_PROM,
+       ALT_MAX_PROMEDIO_INT.FACTOR_CORREC_INFOCA,
+       [ALT_PROM]*[FACTOR_CORREC_INFOCA]/2 AS ALT_CORR
+FROM ALT_MAX_PROMEDIO_INT
+GROUP BY ALT_MAX_PROMEDIO_INT.ZONA,
+         ALT_MAX_PROMEDIO_INT.PARCELA,
+         ALT_MAX_PROMEDIO_INT.QUADRAT,
+         ALT_MAX_PROMEDIO_INT.FECHA,
+         ALT_MAX_PROMEDIO_INT.FACTOR_CORREC_INFOCA;
+```
+
+El resultado lo hemos guardado en el archivo [`ALTURA_MAX_PROMEDIO_QUADRAT.xlsx`](data/raw/ALTURA_MAX_PROMEDIO_QUADRAT.xlsx) que está en la ruta `data/raw/ALTURA_MAX_PROMEDIO_QUADRAT.xlsx` 
+
+- ***Altura moda promedio Quadrat***: `CONSULTAS_ALTURA/ALTURA_MODA_PROMEDIO_QUADRAT`
+```sql
+SELECT ALT_MODA_PROMEDIO_INT.ZONA,
+       ALT_MODA_PROMEDIO_INT.PARCELA,
+       ALT_MODA_PROMEDIO_INT.QUADRAT,
+       ALT_MODA_PROMEDIO_INT.FECHA,
+       Avg(ALT_MODA_PROMEDIO_INT.ALT_REL) AS ALTURA_PROMEDIO,
+       ALT_MODA_PROMEDIO_INT.FACTOR_CORREC_INFOCA,
+       [ALTURA_PROMEDIO]*[FACTOR_CORREC_INFOCA]/2 AS ALT_CORR
+FROM ALT_MODA_PROMEDIO_INT
+GROUP BY ALT_MODA_PROMEDIO_INT.ZONA,
+         ALT_MODA_PROMEDIO_INT.PARCELA,
+         ALT_MODA_PROMEDIO_INT.QUADRAT,
+         ALT_MODA_PROMEDIO_INT.FECHA,
+         ALT_MODA_PROMEDIO_INT.FACTOR_CORREC_INFOCA;
+```
+
+El resultado lo hemos guardado en el archivo [`ALTURA_MODA_PROMEDIO_QUADRAT.xlsx`](data/raw/ALTURA_MODA_PROMEDIO_QUADRAT.xlsx) que está en la ruta `data/raw/ALTURA_MODA_PROMEDIO_QUADRAT.xlsx` 
+
+- ***Suelo desnudo Quadrat***: `CONSULTAS_DESNUDO/DESNUDO_QUADRAT`
+```sql
+SELECT GEO_ZONA.Nombre_zona AS ZONA,
+       GEO_PARCELA.NOMBRE AS PARCELA,
+       GEO_QUADRAT.NOMBRE AS QUADRAT,
+       GEO_QUADRAT.RANGO_INFOCA,
+       DICC_FECHA_MUESTREOS_VEGE_OVEJA.FECHA_MUESTREOS,
+       GEO_QUADRAT.FACTOR_CORREC_INFOCA,
+       TAB_VISITA_EVAL_VEG_QUAD.COB_DESNUDO AS DESNUDO
+FROM DICC_FECHA_MUESTREOS_VEGE_OVEJA
+INNER JOIN (GEO_ZONA
+            INNER JOIN ((GEO_PARCELA
+                         INNER JOIN GEO_QUADRAT ON GEO_PARCELA.OBJECTID_1 = GEO_QUADRAT.COD_PARCELA)
+                        INNER JOIN TAB_VISITA_EVAL_VEG_QUAD ON GEO_QUADRAT.OBJECTID = TAB_VISITA_EVAL_VEG_QUAD.COD_QUADRAT) ON GEO_ZONA.OBJECTID = GEO_PARCELA.COD_ZONA) ON DICC_FECHA_MUESTREOS_VEGE_OVEJA.ID_FECHA_MUESTREOS_VEG = TAB_VISITA_EVAL_VEG_QUAD.COD_FECHA_MUESTREO
+WHERE (((DICC_FECHA_MUESTREOS_VEGE_OVEJA.FECHA_MUESTREOS)<>#10/9/2019#));
+```
+
+El resultado lo hemos guardado en el archivo [`DESNUDO_QUADRAT.xlsx`](data/raw/DESNUDO_QUADRAT.xlsx) que está en la ruta `data/raw/DESNUDO_QUADRAT.xlsx` 
+
+- ***Diversidad Quadrat***: `CONSULTAS_DIVERSIDAD/DIVERSIDAD_QUADRAT`
+```sql
+SELECT DIVERSIDAD_QUADRAT_INT.ZONA,
+       DIVERSIDAD_QUADRAT_INT.PARCELA,
+       DIVERSIDAD_QUADRAT_INT.QUADRAT,
+       DIVERSIDAD_QUADRAT_INT.RANGO_INFOCA,
+       DIVERSIDAD_QUADRAT_INT.FACTOR_CORREC_INFOCA,
+       DIVERSIDAD_QUADRAT_INT.FECHA_MUESTREOS,
+       Sum(DIVERSIDAD_QUADRAT_INT.PI_LNPI) AS I_SHANNON
+FROM DIVERSIDAD_QUADRAT_INT
+GROUP BY DIVERSIDAD_QUADRAT_INT.ZONA,
+         DIVERSIDAD_QUADRAT_INT.PARCELA,
+         DIVERSIDAD_QUADRAT_INT.QUADRAT,
+         DIVERSIDAD_QUADRAT_INT.RANGO_INFOCA,
+         DIVERSIDAD_QUADRAT_INT.FACTOR_CORREC_INFOCA,
+         DIVERSIDAD_QUADRAT_INT.FECHA_MUESTREOS;
+```
+
+El resultado lo hemos guardado en el archivo [`DIVERSIDAD_QUADRAT.xlsx`](data/raw/DIVERSIDAD_QUADRAT.xlsx) que está en la ruta `data/raw/DIVERSIDAD_QUADRAT.xlsx` 
+
+- ***Tasa de Fitovolumen Total Quadrat***: `CONSULTAS_FITOVOLUMEN/FITOVOL_TOTAL_QUADRAT`
+```sql
+SELECT GEO_ZONA.Nombre_zona AS ZONA,
+       GEO_PARCELA.NOMBRE AS PARCELA,
+       GEO_QUADRAT.NOMBRE AS QUADRAT,
+       GEO_QUADRAT.RANGO_INFOCA,
+       GEO_QUADRAT.FACTOR_CORREC_INFOCA,
+       DICC_FECHA_MUESTREOS_VEGE_OVEJA.FECHA_MUESTREOS,
+       Sum([EVAL_VEG_QUADRAT_SP]![COBERTURA]*[EVAL_VEG_QUADRAT_SP]![ALTURA_MOD]) AS FITOVOL
+FROM DICC_FECHA_MUESTREOS_VEGE_OVEJA
+INNER JOIN ((GEO_ZONA
+             INNER JOIN ((GEO_PARCELA
+                          INNER JOIN GEO_QUADRAT ON GEO_PARCELA.OBJECTID_1 = GEO_QUADRAT.COD_PARCELA)
+                         INNER JOIN TAB_VISITA_EVAL_VEG_QUAD ON GEO_QUADRAT.OBJECTID = TAB_VISITA_EVAL_VEG_QUAD.COD_QUADRAT) ON GEO_ZONA.OBJECTID = GEO_PARCELA.COD_ZONA)
+            INNER JOIN (DICC_ESPECIES
+                        INNER JOIN EVAL_VEG_QUADRAT_SP ON DICC_ESPECIES.ID_ESPECIE = EVAL_VEG_QUADRAT_SP.COD_ESPECIE) ON TAB_VISITA_EVAL_VEG_QUAD.ID_VISITA_QUADRAT = EVAL_VEG_QUADRAT_SP.Cod_visita_quadrat) ON DICC_FECHA_MUESTREOS_VEGE_OVEJA.ID_FECHA_MUESTREOS_VEG = TAB_VISITA_EVAL_VEG_QUAD.COD_FECHA_MUESTREO
+GROUP BY GEO_ZONA.Nombre_zona,
+         GEO_PARCELA.NOMBRE,
+         GEO_QUADRAT.NOMBRE,
+         GEO_QUADRAT.RANGO_INFOCA,
+         GEO_QUADRAT.FACTOR_CORREC_INFOCA,
+         DICC_FECHA_MUESTREOS_VEGE_OVEJA.FECHA_MUESTREOS
+HAVING (((DICC_FECHA_MUESTREOS_VEGE_OVEJA.FECHA_MUESTREOS)<>#10/9/2019#));
+```
+
+El resultado lo hemos guardado en el archivo [`FITOVOL_TOTAL_QUADRAT.xlsx`](data/raw/FITOVOL_TOTAL_QUADRAT.xlsx) que está en la ruta `data/raw/FITOVOL_TOTAL_QUADRAT.xlsx` 
+
+- ***Suelo mantillo promedio Quadrat***: `CONSULTAS_MANTILLO/MANTILLO_QUADRAT`
+```sql
+SELECT GEO_ZONA.Nombre_zona AS ZONA,
+       GEO_PARCELA.NOMBRE AS PARCELA,
+       GEO_QUADRAT.NOMBRE AS QUADRAT,
+       GEO_QUADRAT.RANGO_INFOCA,
+       DICC_FECHA_MUESTREOS_VEGE_OVEJA.FECHA_MUESTREOS,
+       GEO_QUADRAT.FACTOR_CORREC_INFOCA,
+       TAB_VISITA_EVAL_VEG_QUAD.COB_MANTILLO AS MANTILLO
+FROM DICC_FECHA_MUESTREOS_VEGE_OVEJA
+INNER JOIN (GEO_ZONA
+            INNER JOIN ((GEO_PARCELA
+                         INNER JOIN GEO_QUADRAT ON GEO_PARCELA.OBJECTID_1 = GEO_QUADRAT.COD_PARCELA)
+                        INNER JOIN TAB_VISITA_EVAL_VEG_QUAD ON GEO_QUADRAT.OBJECTID = TAB_VISITA_EVAL_VEG_QUAD.COD_QUADRAT) ON GEO_ZONA.OBJECTID = GEO_PARCELA.COD_ZONA) ON DICC_FECHA_MUESTREOS_VEGE_OVEJA.ID_FECHA_MUESTREOS_VEG = TAB_VISITA_EVAL_VEG_QUAD.COD_FECHA_MUESTREO
+WHERE (((DICC_FECHA_MUESTREOS_VEGE_OVEJA.FECHA_MUESTREOS)<>#10/9/2019#));
+```
+
+El resultado lo hemos guardado en el archivo [`MANTILLO_QUADRAT.xlsx`](data/raw/MANTILLO_QUADRAT.xlsx) que está en la ruta `data/raw/MANTILLO_QUADRAT.xlsx` 
+
+- ***Tasa de Recubrimiento Total Quadrat***: `CONSULTAS_RECUBRIMIENTO_TOTAL/REC_TOTAL_QUADRAT`
+```sql
+SELECT GEO_ZONA.Nombre_zona AS ZONA,
+       GEO_PARCELA.NOMBRE AS PARCELA,
+       GEO_QUADRAT.NOMBRE AS QUADRAT,
+       GEO_QUADRAT.RANGO_INFOCA,
+       DICC_FECHA_MUESTREOS_VEGE_OVEJA.FECHA_MUESTREOS,
+       TAB_VISITA_EVAL_VEG_QUAD.COB_TOTAL,
+       GEO_QUADRAT.FACTOR_CORREC_INFOCA
+FROM GEO_ZONA
+INNER JOIN ((GEO_PARCELA
+             INNER JOIN GEO_QUADRAT ON GEO_PARCELA.OBJECTID_1 = GEO_QUADRAT.COD_PARCELA)
+            INNER JOIN (DICC_FECHA_MUESTREOS_VEGE_OVEJA
+                        INNER JOIN TAB_VISITA_EVAL_VEG_QUAD ON DICC_FECHA_MUESTREOS_VEGE_OVEJA.ID_FECHA_MUESTREOS_VEG = TAB_VISITA_EVAL_VEG_QUAD.COD_FECHA_MUESTREO) ON GEO_QUADRAT.OBJECTID = TAB_VISITA_EVAL_VEG_QUAD.COD_QUADRAT) ON GEO_ZONA.OBJECTID = GEO_PARCELA.COD_ZONA
+WHERE (((DICC_FECHA_MUESTREOS_VEGE_OVEJA.FECHA_MUESTREOS)<>#10/9/2019#));
+```
+
+El resultado lo hemos guardado en el archivo [`REC_TOTAL_QUADRAT.xlsx`](data/raw/REC_TOTAL_QUADRAT.xlsx) que está en la ruta `data/raw/REC_TOTAL_QUADRAT.xlsx` 
+
+- ***Tasa de Recubrimiento Vegetal Quadrat***: `CONSULTAS_RECUBRIMIENTO_VEGETAL/REC_VEG_QUADRAT`
+```sql
+SELECT GEO_ZONA.Nombre_zona AS ZONA,
+       GEO_PARCELA.NOMBRE AS PARCELA,
+       GEO_QUADRAT.NOMBRE AS QUADRAT,
+       GEO_QUADRAT.RANGO_INFOCA,
+       GEO_QUADRAT.FACTOR_CORREC_INFOCA,
+       DICC_FECHA_MUESTREOS_VEGE_OVEJA.FECHA_MUESTREOS,
+       Sum(EVAL_VEG_QUADRAT_SP.COBERTURA) AS REC_VEG,
+       EVAL_VEG_QUADRAT_SP.MUERTA
+FROM DICC_FECHA_MUESTREOS_VEGE_OVEJA
+INNER JOIN ((GEO_ZONA
+             INNER JOIN ((GEO_PARCELA
+                          INNER JOIN GEO_QUADRAT ON GEO_PARCELA.OBJECTID_1 = GEO_QUADRAT.COD_PARCELA)
+                         INNER JOIN TAB_VISITA_EVAL_VEG_QUAD ON GEO_QUADRAT.OBJECTID = TAB_VISITA_EVAL_VEG_QUAD.COD_QUADRAT) ON GEO_ZONA.OBJECTID = GEO_PARCELA.COD_ZONA)
+            INNER JOIN EVAL_VEG_QUADRAT_SP ON TAB_VISITA_EVAL_VEG_QUAD.ID_VISITA_QUADRAT = EVAL_VEG_QUADRAT_SP.Cod_visita_quadrat) ON DICC_FECHA_MUESTREOS_VEGE_OVEJA.ID_FECHA_MUESTREOS_VEG = TAB_VISITA_EVAL_VEG_QUAD.COD_FECHA_MUESTREO
+GROUP BY GEO_ZONA.Nombre_zona,
+         GEO_PARCELA.NOMBRE,
+         GEO_QUADRAT.NOMBRE,
+         GEO_QUADRAT.RANGO_INFOCA,
+         GEO_QUADRAT.FACTOR_CORREC_INFOCA,
+         DICC_FECHA_MUESTREOS_VEGE_OVEJA.FECHA_MUESTREOS,
+         EVAL_VEG_QUADRAT_SP.MUERTA
+HAVING (((DICC_FECHA_MUESTREOS_VEGE_OVEJA.FECHA_MUESTREOS)<>#10/9/2019#)
+        AND ((EVAL_VEG_QUADRAT_SP.MUERTA)=FALSE));
+```
+
+El resultado lo hemos guardado en el archivo [`REC_VEG_QUADRAT.xlsx`](data/raw/REC_VEG_QUADRAT.xlsx) que está en la ruta `data/raw/REC_VEG_QUADRAT.xlsx` 
+
+- ***Riqueza Quadrat***: `CONSULTAS_RIQUEZA/RIQUEZA_QUADRAT`
+```sql
+SELECT GEO_ZONA.Nombre_zona,
+       GEO_PARCELA.NOMBRE,
+       GEO_QUADRAT.NOMBRE,
+       GEO_QUADRAT.RANGO_INFOCA,
+       GEO_QUADRAT.FACTOR_CORREC_INFOCA,
+       DICC_FECHA_MUESTREOS_VEGE_OVEJA.FECHA_MUESTREOS,
+       Count(GEO_QUADRAT.NOMBRE) AS RIQUEZA,
+       [RIQUEZA]*[FACTOR_CORREC_INFOCA] AS RIQUEZA_COR
+FROM DICC_FECHA_MUESTREOS_VEGE_OVEJA
+INNER JOIN ((GEO_ZONA
+             INNER JOIN ((GEO_PARCELA
+                          INNER JOIN GEO_QUADRAT ON GEO_PARCELA.OBJECTID_1 = GEO_QUADRAT.COD_PARCELA)
+                         INNER JOIN TAB_VISITA_EVAL_VEG_QUAD ON GEO_QUADRAT.OBJECTID = TAB_VISITA_EVAL_VEG_QUAD.COD_QUADRAT) ON GEO_ZONA.OBJECTID = GEO_PARCELA.COD_ZONA)
+            INNER JOIN (DICC_ESPECIES
+                        INNER JOIN EVAL_VEG_QUADRAT_SP ON DICC_ESPECIES.ID_ESPECIE = EVAL_VEG_QUADRAT_SP.COD_ESPECIE) ON TAB_VISITA_EVAL_VEG_QUAD.ID_VISITA_QUADRAT = EVAL_VEG_QUADRAT_SP.Cod_visita_quadrat) ON DICC_FECHA_MUESTREOS_VEGE_OVEJA.ID_FECHA_MUESTREOS_VEG = TAB_VISITA_EVAL_VEG_QUAD.COD_FECHA_MUESTREO
+GROUP BY GEO_ZONA.Nombre_zona,
+         GEO_PARCELA.NOMBRE,
+         GEO_QUADRAT.NOMBRE,
+         GEO_QUADRAT.RANGO_INFOCA,
+         GEO_QUADRAT.FACTOR_CORREC_INFOCA,
+         DICC_FECHA_MUESTREOS_VEGE_OVEJA.FECHA_MUESTREOS;
+```
+
+El resultado lo hemos guardado en el archivo [`RIQUEZA_QUADRAT.xlsx`](data/raw/RIQUEZA_QUADRAT.xlsx) que está en la ruta `data/raw/RIQUEZA_QUADRAT.xlsx` 
+
+- ***Severidad Quemas Quadrat***: `CONSULTAS_SEVERIDAD_QUEMA/SEV_QUEMA_QUAD_TOT`
+```sql
+SELECT GEO_ZONA.Nombre_zona AS ZONA,
+       GEO_PARCELA.NOMBRE AS PARCELA,
+       GEO_QUADRAT.NOMBRE AS QUADRAT,
+       DICC_FECHA_MUESTREOS_VEGE_OVEJA.FECHA_MUESTREOS,
+       GEO_QUADRAT.RANGO_INFOCA,
+       GEO_QUADRAT.FACTOR_CORREC_INFOCA,
+       TAB_VISITA_EVAL_QUEMA.PORC_SOFLAMADO,
+       TAB_VISITA_EVAL_QUEMA.PORC_QUEMADO,
+       DICC_RANGO_QUEMA.RANGO AS RANGO_QUEMA
+FROM DICC_FECHA_MUESTREOS_VEGE_OVEJA
+INNER JOIN (GEO_ZONA
+            INNER JOIN ((GEO_PARCELA
+                         INNER JOIN GEO_QUADRAT ON GEO_PARCELA.OBJECTID_1 = GEO_QUADRAT.COD_PARCELA)
+                        INNER JOIN (DICC_RANGO_QUEMA
+                                    INNER JOIN TAB_VISITA_EVAL_QUEMA ON DICC_RANGO_QUEMA.ID_RANGO_QUEMA = TAB_VISITA_EVAL_QUEMA.COD_RANGO_QUEMA) ON GEO_QUADRAT.OBJECTID = TAB_VISITA_EVAL_QUEMA.COD_QUADRAT) ON GEO_ZONA.OBJECTID = GEO_PARCELA.COD_ZONA) ON DICC_FECHA_MUESTREOS_VEGE_OVEJA.ID_FECHA_MUESTREOS_VEG = TAB_VISITA_EVAL_QUEMA.COD_FECHA_MUESTREO;
+```
+
+El resultado lo hemos guardado en el archivo [`SEV_QUEMA_QUAD_TOT.xlsx`](data/raw/SEV_QUEMA_QUAD_TOT.xlsx) que está en la ruta `data/raw/SEV_QUEMA_QUAD_TOT.xlsx` 
+
+- ***Tasa de Consumo Quadrat***: `CONSULTAS_TASA_DE_CONSUMO/TASA_CONSUMO_PROMEDIO_QUADRAT`
+```sql
+SELECT TASA_CONSUMO_SP_QUADRAT.Nombre_zona AS ZONA,
+       TASA_CONSUMO_SP_QUADRAT.GEO_PARCELA.NOMBRE AS PARCELA,
+       TASA_CONSUMO_SP_QUADRAT.GEO_QUADRAT.NOMBRE AS QUADRAT,
+       TASA_CONSUMO_SP_QUADRAT.FACTOR_CORREC_INFOCA,
+       TASA_CONSUMO_SP_QUADRAT.FECHA_MUESTREOS,
+       Sum([TASA_CONSUMO_SP_QUADRAT]![TASA_CONSUMO]*[TASA_CONSUMO_SP_QUADRAT]![COBERTURA]/[REC_VEG_QUADRAT]![REC_VEG]) AS TASA_CONSUMO
+FROM TASA_CONSUMO_SP_QUADRAT
+INNER JOIN REC_VEG_QUADRAT ON (TASA_CONSUMO_SP_QUADRAT.FECHA_MUESTREOS = REC_VEG_QUADRAT.FECHA_MUESTREOS)
+AND (TASA_CONSUMO_SP_QUADRAT.GEO_QUADRAT.NOMBRE = REC_VEG_QUADRAT.QUADRAT)
+GROUP BY TASA_CONSUMO_SP_QUADRAT.Nombre_zona,
+         TASA_CONSUMO_SP_QUADRAT.GEO_PARCELA.NOMBRE,
+         TASA_CONSUMO_SP_QUADRAT.GEO_QUADRAT.NOMBRE,
+         TASA_CONSUMO_SP_QUADRAT.FACTOR_CORREC_INFOCA,
+         TASA_CONSUMO_SP_QUADRAT.FECHA_MUESTREOS;
+```
+
+El resultado lo hemos guardado en el archivo [`TASA_CONSUMO_PROMEDIO_QUADRAT.xlsx`](data/raw/TASA_CONSUMO_PROMEDIO_QUADRAT.xlsx) que está en la ruta `data/raw/TASA_CONSUMO_PROMEDIO_QUADRAT.xlsx` 
+
+## Estandarización a DwC (ExtendMeasurementOrFact, emof)
+
+```{r pkgs}
+library(tidyverse) # Easily Install and Load the 'Tidyverse'
+library(here) # A Simpler Way to Find Your Files
+library(janitor) # Simple Tools for Examining and Cleaning Dirty Data
+```
+
+```{r}
+dicc_variables <- read.csv(here::here("data/raw/dic_var.csv"), sep = ";", 
+                           encoding = 'UTF-8') |> 
+  rename(measurementType = name_var,
+         measurementUnit = units,
+         measurementMethod = methods,
+         measurementRemarks = url_controlled)
+      
+```
+
+```{r}
+files <- list.files(path = here::here("data/raw/quadrats/"),
+                    pattern = "*.xlsx", 
+                    full.names = FALSE)
+```
+
+Genera una función para formatear todos los excels y dejarlos con un formato parecido a DwC emof  
+
+```{r}
+files |> 
+  purrr::map(function(filename){
+    aux <- readxl::read_excel(here::here("data/raw/quadrats/", basename(filename))) |> 
+      janitor::clean_names() |> 
+      rename_with(
+        ~ case_when(
+          . == "fecha" ~ "fecha_muestreos",
+          . == "nombre_zona" ~ "zona",
+          . == "geo_quadrat_nombre" ~ "quadrat",
+          . == "geo_parcela_nombre" ~ "parcela",
+          TRUE ~ .))
+    
+    aux_event <- aux |> 
+      dplyr::select(-contains("correc"), 
+                    -contains("cor"),
+                    -contains("muerta"),
+                    -contains("rango_infoca")) |> 
+      mutate(
+        treatment_name = case_when(
+          zona == "Quemado con pastoreo" ~ "QOP",
+          zona == "Quemado sin pastoreo" ~ "QONP",
+          zona == "Quemado primavera" ~ "QPP")) |> 
+      mutate(date = gsub("-","",fecha_muestreos)) |> 
+      unite("eventID", c(quadrat, date), remove = FALSE) |> 
+      rename(measurementDeterminedDate = date) |> 
+      dplyr::select(-zona, -parcela, -fecha_muestreos) |> 
+      pivot_longer(-c(eventID, quadrat, measurementDeterminedDate, treatment_name)) |> 
+      dplyr::select(-quadrat, -treatment_name) |> 
+      rename(measurementValue = value)
+    
+    
+    assign(x = tolower(str_remove(filename, ".xlsx")),
+           value = aux_event, 
+           envir = .GlobalEnv)
+  })
+
+```
+
+
+## Genera emof para cada variable 
+
+### Variables relacionadas con la estructura
+####  Altura máxima Quadrat 
+```{r}
+event_altura_max <- 
+  altura_max_promedio_quadrat |> 
+  mutate(measurementValue = round(measurementValue, 2)) |> 
+  mutate(name = case_when(name == "alt_prom" ~ "maxheight")) |> 
+  inner_join(dicc_variables,
+    by = c("name" = "raw_key")) |>
+  unite("measurementID", c(eventID, id), remove = FALSE) |> 
+  dplyr::select(-code, -name, -id)
+```
+
+#### Altura moda Quadrat 
+```{r}
+event_altura_moda <- 
+  altura_moda_promedio_quadrat |> 
+  mutate(measurementValue = round(measurementValue, 2)) |> 
+  mutate(name = case_when(name == "altura_promedio" ~ "modeheight")) |> 
+  inner_join(dicc_variables,
+    by = c("name" = "raw_key")) |>
+  unite("measurementID", c(eventID, id), remove = FALSE) |> 
+  dplyr::select(-code, -name, -id)
+```
+
+#### Fitovolumen Total Quadrat 
+```{r}
+event_fitovol <- 
+  fitovol_total_quadrat |> 
+  mutate(name = case_when(name == "fitovol" ~ "fitovolumen")) |> 
+  inner_join(dicc_variables,
+    by = c("name" = "raw_key")) |>
+  unite("measurementID", c(eventID, id), remove = FALSE) |> 
+  dplyr::select(-code, -name, -id)
+```
+
+### Variables relacionadas con la cobertura 
+#### Suelo desnudo Quadrat 
+```{r}
+event_desnudo <- 
+  desnudo_quadrat |> 
+  mutate(name = case_when(name == "desnudo" ~ "bare_soil_percent")) |> 
+  inner_join(dicc_variables,
+    by = c("name" = "raw_key")) |>
+  unite("measurementID", c(eventID, id), remove = FALSE) |> 
+  dplyr::select(-code, -name, -id)
+```
+
+#### Mantillo Quadrat 
+```{r}
+event_mantillo <- 
+  mantillo_quadrat |> 
+  mutate(name = case_when(name == "mantillo" ~ "litter_soil_percent")) |> 
+  inner_join(dicc_variables,
+    by = c("name" = "raw_key")) |>
+  unite("measurementID", c(eventID, id), remove = FALSE) |> 
+  dplyr::select(-code, -name, -id)
+```
+
+#### Rec Total Quadrat 
+```{r}
+event_rec_total <- 
+  rec_total_quadrat |> 
+  mutate(name = case_when(name == "cob_total" ~ "tcover_percent")) |> 
+  inner_join(dicc_variables,
+    by = c("name" = "raw_key")) |>
+  unite("measurementID", c(eventID, id), remove = FALSE) |> 
+  dplyr::select(-code, -name, -id)
+```
+
+#### Rec Veg Quadrat 
+```{r}
+event_rec_veg <- 
+  rec_veg_quadrat |> 
+  mutate(name = case_when(name == "rec_veg" ~ "vcover_percent")) |> 
+  inner_join(dicc_variables,
+    by = c("name" = "raw_key")) |>
+  unite("measurementID", c(eventID, id), remove = FALSE) |> 
+  dplyr::select(-code, -name, -id)
+```
+
+### Variables relacionadas con la biodiversidad  
+#### Diversidad Quadrat 
+```{r}
+event_diversidad <- 
+  diversidad_quadrat |> 
+  mutate(measurementValue = round(abs(measurementValue),3)) |> 
+  mutate(name = case_when(name == "i_shannon" ~ "diversity")) |> 
+  inner_join(dicc_variables,
+    by = c("name" = "raw_key")) |>
+  unite("measurementID", c(eventID, id), remove = FALSE) |> 
+  dplyr::select(-code, -name, -id)
+```
+#### Riqueza Quadrat 
+```{r}
+event_riqueza <- 
+  riqueza_quadrat |> 
+  mutate(name = case_when(name == "riqueza" ~ "richness")) |> 
+  inner_join(dicc_variables,
+    by = c("name" = "raw_key")) |>
+  unite("measurementID", c(eventID, id), remove = FALSE) |> 
+  dplyr::select(-code, -name, -id)
+```
+
+
+### Otras variables
+#### Severidad de Quema Quadrat 
+```{r}
+event_severidad <- 
+  sev_quema_quad_tot |> 
+  mutate(name = 
+           case_when(name == "rango_quema" ~ "burning",
+                     name == "porc_soflamado" ~ "blowing_level_percent",
+                     name == "porc_quemado" ~ "burning_level_percent")) |> 
+  inner_join(dicc_variables,
+    by = c("name" = "raw_key")) |>
+  unite("measurementID", c(eventID, id), remove = FALSE) |> 
+  dplyr::select(-code, -name, -id)
+```
+
+#### Tasa Consumo Quadrat 
+```{r}
+event_tasa_consumo <- 
+  tasa_consumo_promedio_quadrat |>
+  mutate(measurementValue = round(measurementValue, 2)) |> 
+  mutate(name = case_when(name == "tasa_consumo" ~ "tc")) |> 
+  inner_join(dicc_variables,
+    by = c("name" = "raw_key")) |>
+  unite("measurementID", c(eventID, id), remove = FALSE) |> 
+  dplyr::select(-code, -name, -id)
+```
+
+## Genera un dataframe con todos los datos
+
+```{r}
+o <- ls(pattern = "event_*") 
+
+emof_quadrats <- bind_rows(mget(o)) |> 
+  relocate(measurementType, measurementValue, measurementUnit, .after = eventID)
+```
+
+
+La tabla se exporta en csv en el siguiente enlace [`data/dwc_db/emof_quadrats.csv`](data/dwc_db/emof_quadrats.csv). 
+
+```{r}
+# Export table
+write_csv(emof_quadrats, 
+          here::here("data/dwc_db/emof_quadrats.csv"))
+```
+
+Aspecto de la tabla: 
+
+```{r, echo=FALSE}
+DT::datatable(emof_quadrats,
+              rownames = FALSE,
+              filter = 'top',
+              options = list(
+                pageLength = 20, 
+                autoWidth = TRUE
+              ))
+```
+
+
+  
