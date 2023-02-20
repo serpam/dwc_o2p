@@ -8,4 +8,8 @@ editor_options:
   chunk_output_type: console
 ---
 
-Welcome to my research website.
+Estandarización de datos de seguimiento delm proyecto O2P en Sierra de Filabres (Alcóntar, Almería, España) al estándar DarwinCore. 
+
+## Generación de ExtendedMeasurementOrFacts
+- [Datos de Quadrats](prepara_dwc_o2p_quadrats.html)
+
